@@ -7,6 +7,7 @@ using Microsoft.MixedReality.Toolkit.Core.Definitions.InputSystem;
 using Microsoft.MixedReality.Toolkit.Core.Definitions.Utilities;
 using Microsoft.MixedReality.Toolkit.Core.Interfaces.InputSystem;
 using Microsoft.MixedReality.Toolkit.Core.Services;
+using Microsoft.MixedReality.Toolkit.Core.Utilities;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Core.Providers.UnityInput
@@ -69,10 +70,18 @@ namespace Microsoft.MixedReality.Toolkit.Core.Providers.UnityInput
                 return;
             }
 
-            if (InputSource.Pointers[0].BaseCursor != null)
+            //if (InputSource.Pointers[0].BaseCursor != null)
+            //{
+            //    controllerPose.Position = InputSource.Pointers[0].BaseCursor.Position;
+            //    controllerPose.Rotation = InputSource.Pointers[0].BaseCursor.Rotation;
+            //}
+
             {
-                controllerPose.Position = InputSource.Pointers[0].BaseCursor.Position;
-                controllerPose.Rotation = InputSource.Pointers[0].BaseCursor.Rotation;
+                Vector3 screenPos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1);
+                controllerPose.Position = CameraCache.Main.ScreenToWorldPoint(screenPos);
+                //Vector3 viewportPos = new Vector3(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height, 1);
+                //controllerPose.Position = CameraCache.Main.ViewportToWorldPoint(viewportPos);
+                controllerPose.Rotation = Quaternion.identity;
             }
 
             mouseDelta.x = -Input.GetAxis("Mouse Y");
