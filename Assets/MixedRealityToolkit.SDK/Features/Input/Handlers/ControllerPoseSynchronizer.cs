@@ -9,6 +9,7 @@ using Microsoft.MixedReality.Toolkit.Core.EventDatum.Input;
 using Microsoft.MixedReality.Toolkit.Core.Interfaces.Devices;
 using Microsoft.MixedReality.Toolkit.Services.InputSystem;
 using UnityEngine;
+using Microsoft.MixedReality.Toolkit.Core.Interfaces.InputSystem;
 
 namespace Microsoft.MixedReality.Toolkit.SDK.Input.Handlers
 {
@@ -32,7 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.SDK.Input.Handlers
 
         [SerializeField]
         [Tooltip("Should this GameObject clean itself up when it's controller is lost?")]
-        private bool destroyOnSourceLost = true;
+        private bool destroyOnSourceLost = false;
 
         /// <inheritdoc />
         public bool DestroyOnSourceLost
@@ -67,12 +68,12 @@ namespace Microsoft.MixedReality.Toolkit.SDK.Input.Handlers
 
         [SerializeField]
         [Tooltip("Should the Transform's position be driven from the source pose or from input handler?")]
-        private bool useSourcePoseData = true;
+        private bool useSourcePoseData = false;
 
         /// <inheritdoc />
         public bool UseSourcePoseData
         {
-            get { return useSourcePoseData; }
+            get { return false; }
             set { useSourcePoseData = value; }
         }
 
@@ -143,6 +144,7 @@ namespace Microsoft.MixedReality.Toolkit.SDK.Input.Handlers
             {
                 if (UseSourcePoseData && TrackingState == TrackingState.Tracked)
                 {
+                    Debug.Log("GO " + gameObject + " POS " + eventData.SourceData.Position + " ROT " + eventData.SourceData.Rotation);
                     transform.localPosition = eventData.SourceData.Position;
                     transform.localRotation = eventData.SourceData.Rotation;
                 }
@@ -207,8 +209,9 @@ namespace Microsoft.MixedReality.Toolkit.SDK.Input.Handlers
         {
             if (eventData.SourceId == Controller?.InputSource.SourceId)
             {
-                if (!UseSourcePoseData &&
-                    PoseAction == eventData.MixedRealityInputAction)
+                IMixedRealityPointer pointer = this as IMixedRealityPointer;
+                if (!UseSourcePoseData && pointer == null)
+                    //&& PoseAction == eventData.MixedRealityInputAction)
                 {
                     IsTracked = true;
                     TrackingState = TrackingState.Tracked;

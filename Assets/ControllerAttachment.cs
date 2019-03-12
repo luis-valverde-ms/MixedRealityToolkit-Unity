@@ -10,10 +10,10 @@ using UnityEngine;
 public class ControllerAttachment : MonoBehaviour, IMixedRealityInputHandler<MixedRealityPose>
 {
     [SerializeField]
-    private Handedness hand;
+    private Handedness hand = Handedness.Any;
 
     [SerializeField]
-    private MixedRealityInputAction poseAction;
+    private MixedRealityInputAction poseAction = MixedRealityInputAction.None;
 
     public void OnInputChanged(InputEventData<MixedRealityPose> eventData)
     {
@@ -32,6 +32,6 @@ public class ControllerAttachment : MonoBehaviour, IMixedRealityInputHandler<Mix
 
     private void OnDisable()
     {
-        MixedRealityToolkit.InputSystem.Unregister(gameObject);
+        MixedRealityToolkit.InputSystem?.Unregister(gameObject);
     }
 }
