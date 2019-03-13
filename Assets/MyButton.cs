@@ -5,35 +5,37 @@ using UnityEngine;
 
 public class MyButton : MonoBehaviour, IPointerEventHandler
 {
+    public float travelDistance = 0.1f;
+    private Color originalColor;
+
     public void OnPointerEnter(PointerEventData data)
     {
-        Debug.Log("OnPointerEnter");
+        var meshRenderer = GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            originalColor = meshRenderer.material.color;
+            meshRenderer.material.color = Color.Lerp(originalColor, Color.white, 0.5f);
+        }
     }
 
     public void OnPointerExit(PointerEventData data)
     {
-        Debug.Log("OnPointerExit");
+        var meshRenderer = GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            meshRenderer.material.color = originalColor;
+        }
     }
 
     public void OnPointerPressed(PointerEventData data)
     {
-        Debug.Log("OnPointerPressed");
+        transform.position = transform.position - transform.forward * travelDistance;
+        data.pointer.Locked = true;
     }
 
     public void OnPointerReleased(PointerEventData data)
     {
-        Debug.Log("OnPointerReleased");
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        data.pointer.Locked = false;
+        transform.position = transform.position + transform.forward * travelDistance;
     }
 }

@@ -23,24 +23,18 @@ public class MouseAttachment : MonoBehaviour
 
     void Update()
     {
-        var camera = GetComponentInParent<Camera>();
-        if (camera != null)
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        transform.SetPositionAndRotation(ray.origin, Quaternion.LookRotation(ray.direction));
+
+        // Button events
+        if (Input.GetMouseButtonDown(0))
         {
-            // Set transform relative to camera
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-            transform.localPosition = camera.transform.InverseTransformPoint(ray.origin);
-            transform.localRotation = Quaternion.FromToRotation(Vector3.forward, ray.direction);
+            primaryButtonPressed.Invoke();
+        }
 
-            // Button events
-            if (Input.GetMouseButtonDown(0))
-            {
-                primaryButtonPressed.Invoke();
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                primaryButtonReleased.Invoke();
-            }
+        if (Input.GetMouseButtonUp(0))
+        {
+            primaryButtonReleased.Invoke();
         }
     }
 }

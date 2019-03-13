@@ -3,20 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+// May make sense to split this in several interfaces (e.g. one just for pointer moved). 
+// Keeping it simple here
 interface IPointerEventHandler : IEventSystemHandler
 {
     void OnPointerEnter(PointerEventData data);
     void OnPointerPressed(PointerEventData data);
     void OnPointerReleased(PointerEventData data);
     void OnPointerExit(PointerEventData data);
+    //void OnPointerMoved(PointerEventData data);
 }
 
 public class PointerEventData : BaseEventData
 {
-    public PointerEventData(EventSystem eventSystem) : base(eventSystem) { }
+    public Pointer pointer;
+
+    public PointerEventData(Pointer pointer) : base(EventSystem.current)
+    {
+        this.pointer = pointer;
+    }
 }
 
-// TODO Expose target pose via a UnityEvent
+// TODO Sort out execution order: move pointer and cursor via events
+// TODO Implement pointer locking and setting the target pose
+// TODO Expose target pose via a UnityEvent?
 public class Pointer : MonoBehaviour
 {
     public float maxDistance = 10.0f;
@@ -25,25 +35,34 @@ public class Pointer : MonoBehaviour
     private Pose targetPose = Pose.identity;
     public Pose TargetPose { get { return targetPose; } }
 
-    private GameObject currentTarget = null;
-    
-    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerEnterEventFunction =
-        delegate (IPointerEventHandler handler, BaseEventData eventData)
-        {
-            var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
-            handler.OnPointerEnter(casted);
-        };
+    public bool Locked { get; set; }
 
-    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerExitEventFunction =
-        delegate (IPointerEventHandler handler, BaseEventData eventData)
-        {
-            var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
-            handler.OnPointerExit(casted);
-        };
+    private GameObject currentTarget = null;
+    private bool isPressed = false;
+    private PointerEventData eventData;
+
+    void Start()
+    {
+        eventData = new PointerEventData(this);
+    }
 
     void Update()
     {
-        var eventData = new PointerEventData(EventSystem.current);
+        if (Locked)
+        {
+            Vector3 dir = transform.forward * 0.1f;
+            Debug.DrawRay(transform.position, dir, Color.green);
+            dir = TargetPose.forward * 0.1f;
+            Debug.DrawRay(TargetPose.position, dir, Color.red);
+        }
+        else
+        {
+            Raycast();
+        }
+    }
+
+    private void Raycast()
+    { 
         Vector3 direction = transform.rotation * Vector3.forward;
         Ray ray = new Ray(transform.position, direction);
         RaycastHit hitInfo;
@@ -84,11 +103,55 @@ public class Pointer : MonoBehaviour
 
     public void Pressed()
     {
-        Debug.Log("Pointer pressed");
+        Debug.Assert(!isPressed);
+        isPressed = true;
+
+        if (currentTarget)
+        {
+            ExecuteEvents.Execute<IPointerEventHandler>(currentTarget, eventData, onPointerPressedEventFunction);
+        }
     }
 
     public void Released()
     {
-        Debug.Log("Pointer released");
+        Debug.Assert(isPressed);
+        isPressed = false;
+
+        if (currentTarget)
+        {
+            ExecuteEvents.Execute<IPointerEventHandler>(currentTarget, eventData, onPointerReleasedEventFunction);
+        }
     }
+
+
+    //
+    // Pointer event functions
+
+    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerEnterEventFunction =
+    delegate (IPointerEventHandler handler, BaseEventData eventData)
+    {
+        var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
+        handler.OnPointerEnter(casted);
+    };
+
+    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerExitEventFunction =
+        delegate (IPointerEventHandler handler, BaseEventData eventData)
+        {
+            var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
+            handler.OnPointerExit(casted);
+        };
+
+    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerPressedEventFunction =
+        delegate (IPointerEventHandler handler, BaseEventData eventData)
+        {
+            var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
+            handler.OnPointerPressed(casted);
+        };
+
+    private static readonly ExecuteEvents.EventFunction<IPointerEventHandler> onPointerReleasedEventFunction =
+        delegate (IPointerEventHandler handler, BaseEventData eventData)
+        {
+            var casted = ExecuteEvents.ValidateEventData<PointerEventData>(eventData);
+            handler.OnPointerReleased(casted);
+        };
 }
