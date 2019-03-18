@@ -5,8 +5,10 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 // TODO
+// - Fix six DOF controller
+// - Add support for left and right hand
+// - Two handed manipulation
 // - Pointer display
-// - Six DOF controller
 // - Hand controller
 // - Touch pointer?
 // - Two handed manipulation
@@ -52,7 +54,7 @@ namespace Input2
             set
             {
                 targetPose = value;
-                TickEvent.Invoke(this);
+                //TickEvent?.Invoke(this);
             }
         }
 
@@ -70,19 +72,19 @@ namespace Input2
 
         private void OnEnable()
         {
-            var attachment = GetComponent<ControllerAttachment>();
+            var attachment = GetComponent<ControllerAttachmentBase>();
             Debug.Assert(attachment != null);
             attachment.TickEvent += Tick;
         }
 
         private void OnDisable()
         {
-            var attachment = GetComponent<ControllerAttachment>();
+            var attachment = GetComponent<ControllerAttachmentBase>();
             Debug.Assert(attachment != null);
             attachment.TickEvent += Tick;
         }
 
-        private void Tick(ControllerAttachment attachment)
+        private void Tick(ControllerAttachmentBase attachment)
         {
             GameObject prevTarget = currentTarget;
 
@@ -108,9 +110,10 @@ namespace Input2
             }
 
             // Press/released event
-            if (attachment.PrimaryButton != isPressed && currentTarget)
+            bool newIsPressed = attachment.Controller.PrimaryButton;
+            if (newIsPressed != isPressed && currentTarget)
             {
-                isPressed = attachment.PrimaryButton;
+                isPressed = newIsPressed;
                 if (isPressed)
                 {
                     ExecuteEvents.Execute<IPointerEventHandler>(currentTarget, eventData, onPointerPressedEventFunction);
@@ -121,7 +124,7 @@ namespace Input2
                 }
             }
 
-            TickEvent.Invoke(this);
+            TickEvent?.Invoke(this);
         }
 
         private void Raycast()

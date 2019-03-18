@@ -6,40 +6,27 @@ namespace Input2
 {
     public class MouseController : Controller
     {
-        public delegate void TickHandler(MouseController c);
-        public event TickHandler TickEvent;
-
-        public struct MouseState
+        public MouseController()
         {
-            // Current mouse position in pixel coordinates
-            public Vector3 position;
-            public bool present;
-            public bool leftButton;
-            public bool rightButton;
+            IsPresent = true;
         }
-
-        private MouseState state;
-        public MouseState State { get { return state; } }
-
-        private bool present = true;
 
         public override void Tick()
         {
             if (Input.GetKeyDown(KeyCode.P))
             {
-                present = !present;
+                IsPresent = !IsPresent;
             }
 
-            state.present = present; // Input.mousePresent;
-
-            if (state.present)
+            if (IsPresent)
             {
-                state.position = Input.mousePosition;
-                state.leftButton = Input.GetMouseButton(0);
-                state.rightButton = Input.GetMouseButton(1);
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Position = ray.origin;
+                Rotation = Quaternion.LookRotation(ray.direction);
+                PrimaryButton = Input.GetMouseButton(0);
             }
 
-            TickEvent.Invoke(this);
+            base.Tick();
         }
     }
 }

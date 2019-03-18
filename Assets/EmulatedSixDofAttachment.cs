@@ -6,5 +6,5 @@ using Input2;
 
 namespace Input2
 {
-    public class MouseAttachment : ControllerAttachment<MouseController> {}
+    public class EmulatedSixDofAttachment : ControllerAttachment<EmulatedSixDofController> {}
 }

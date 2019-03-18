@@ -6,16 +6,36 @@ using Input2;
 
 namespace Input2
 {
-    public abstract class ControllerAttachment : MonoBehaviour
+    public class ControllerAttachment<T> : ControllerAttachmentBase where T : Controller, new()
     {
-        public delegate void TickHandler(ControllerAttachment c);
-        public event TickHandler TickEvent;
-
-        public bool PrimaryButton { get; protected set; }
-
-        protected void Tick()
+        private void Awake()
         {
-            TickEvent.Invoke(this);
+            var inputManager = Input2.InputManager.Instance;
+            Debug.Assert(inputManager != null);
+
+            Controller = inputManager.GetOrCreateController<T>();
+            Controller.TickEvent += Tick;
+
+            gameObject.SetActive(Controller.IsPresent);
+        }
+
+        private void OnDestroy()
+        {
+            if (Controller != null)
+            {
+                Controller.TickEvent -= Tick;
+            }
+        }
+
+        private void Tick(Controller notUsed)
+        {
+            gameObject.SetActive(Controller.IsPresent);
+
+            if (Controller.IsPresent)
+            {
+                transform.SetPositionAndRotation(Controller.Position, Controller.Rotation);
+                base.Tick();
+            }
         }
     }
 }
