@@ -3,39 +3,44 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MyButton : MonoBehaviour, IPointerEventHandler
+namespace Input2
 {
-    public float travelDistance = 0.1f;
-    private Color originalColor;
-
-    public void OnPointerEnter(PointerEventData data)
+    public class MyButton : MonoBehaviour, IPointerEventHandler
     {
-        var meshRenderer = GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
+        public float travelDistance = 0.1f;
+        private Color originalColor;
+
+        public void OnPointerEnter(PointerEventData data)
         {
-            originalColor = meshRenderer.material.color;
-            meshRenderer.material.color = Color.Lerp(originalColor, Color.white, 0.5f);
+            var meshRenderer = GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+            {
+                originalColor = meshRenderer.material.color;
+                meshRenderer.material.color = Color.Lerp(originalColor, Color.white, 0.5f);
+            }
         }
-    }
 
-    public void OnPointerExit(PointerEventData data)
-    {
-        var meshRenderer = GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
+        public void OnPointerExit(PointerEventData data)
         {
-            meshRenderer.material.color = originalColor;
+            var meshRenderer = GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
+            {
+                meshRenderer.material.color = originalColor;
+            }
         }
-    }
 
-    public void OnPointerPressed(PointerEventData data)
-    {
-        transform.position = transform.position - transform.forward * travelDistance;
-        data.pointer.Locked = true;
-    }
+        public void OnPointerMoved(PointerEventData data) { }
 
-    public void OnPointerReleased(PointerEventData data)
-    {
-        data.pointer.Locked = false;
-        transform.position = transform.position + transform.forward * travelDistance;
+        public void OnPointerPressed(PointerEventData data)
+        {
+            transform.position = transform.position - transform.forward * travelDistance;
+            data.pointer.Locked = true;
+        }
+
+        public void OnPointerReleased(PointerEventData data)
+        {
+            data.pointer.Locked = false;
+            transform.position = transform.position + transform.forward * travelDistance;
+        }
     }
 }

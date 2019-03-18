@@ -2,39 +2,45 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Input2;
 
-public class MouseAttachment : MonoBehaviour
+namespace Input2
 {
-    public UnityEvent primaryButtonPressed;
-    public UnityEvent primaryButtonReleased;
-
-    private void Start()
+    public class MouseAttachment : ControllerAttachment
     {
-        if (primaryButtonPressed == null)
+        private void Awake()
         {
-            primaryButtonPressed = new UnityEvent();
+            var inputManager = Input2.InputManager.Instance;
+            Debug.Assert(inputManager != null);
+
+            var mouse = inputManager.GetOrCreateController<MouseController>();
+            mouse.TickEvent += Tick;
+
+            gameObject.SetActive(mouse.State.present);
         }
 
-        if (primaryButtonReleased == null)
+        private void OnDestroy()
         {
-            primaryButtonReleased = new UnityEvent();
-        }
-    }
-
-    void Update()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        transform.SetPositionAndRotation(ray.origin, Quaternion.LookRotation(ray.direction));
-
-        // Button events
-        if (Input.GetMouseButtonDown(0))
-        {
-            primaryButtonPressed.Invoke();
+            var inputManager = Input2.InputManager.Instance;
+            if (inputManager)
+            {
+                var mouse = inputManager.GetOrCreateController<MouseController>();
+                mouse.TickEvent -= Tick;
+            }
         }
 
-        if (Input.GetMouseButtonUp(0))
+        private void Tick(MouseController mouse)
         {
-            primaryButtonReleased.Invoke();
+            var mouseState = mouse.State;
+            gameObject.SetActive(mouseState.present);
+
+            if (mouseState.present)
+            {
+                Ray ray = Camera.main.ScreenPointToRay(mouseState.position);
+                transform.SetPositionAndRotation(ray.origin, Quaternion.LookRotation(ray.direction));
+                PrimaryButton = mouseState.leftButton;
+                base.Tick();
+            }
         }
     }
 }

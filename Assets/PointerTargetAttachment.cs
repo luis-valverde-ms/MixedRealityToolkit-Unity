@@ -2,13 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// TODO Change this to be a Pose Attachment instead that can be subscribed to a UnityEvent that produces a Pose?
-public class PointerTargetAttachment : MonoBehaviour
+namespace Input2
 {
-    void Update()
+    public class PointerTargetAttachment : MonoBehaviour
     {
-        var pointer = GetComponentInParent<Pointer>();
-        if (pointer != null)
+        public Pointer pointer;
+
+        private void OnEnable()
+        {
+            if (pointer != null)
+            {
+                pointer.TickEvent += Tick;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (pointer != null)
+            {
+                pointer.TickEvent -= Tick;
+            }
+        }
+
+        public void Tick(Pointer pointer)
         {
             transform.SetPositionAndRotation(pointer.TargetPose.position, pointer.TargetPose.rotation);
         }
