@@ -5,13 +5,14 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 // TODO
-// - Fix six DOF controller
 // - Add support for left and right hand
+// - Add behaviour to have enabled just the last pointer with input?
+// - Change pointer target attachment to subscribe to TargetPoseChangedEvent
 // - Two handed manipulation
+// - Attachment that chooses between simulated and real Six DOF automatically?
 // - Pointer display
 // - Hand controller
 // - Touch pointer?
-// - Two handed manipulation
 
 namespace Input2
 {
@@ -54,12 +55,12 @@ namespace Input2
             set
             {
                 targetPose = value;
-                //TickEvent?.Invoke(this);
+                TargetPoseChangedEvent?.Invoke(targetPose);
             }
         }
 
-        public delegate void TickHandler(Pointer p);
-        public event TickHandler TickEvent;
+        public delegate void PoseChangedHandler(Pose newPose);
+        public event PoseChangedHandler TargetPoseChangedEvent;
 
         private GameObject currentTarget = null;
         private bool isPressed = false;
@@ -123,8 +124,6 @@ namespace Input2
                     ExecuteEvents.Execute<IPointerEventHandler>(currentTarget, eventData, onPointerReleasedEventFunction);
                 }
             }
-
-            TickEvent?.Invoke(this);
         }
 
         private void Raycast()
@@ -132,6 +131,7 @@ namespace Input2
             Vector3 direction = transform.rotation * Vector3.forward;
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hitInfo;
+            Pose newTargetPose;
 
             if (Physics.Raycast(ray, out hitInfo, maxRaycastDistance))
             {
@@ -145,8 +145,8 @@ namespace Input2
                     ExecuteEvents.Execute<IPointerEventHandler>(currentTarget, eventData, onPointerEnterEventFunction);
                 }
 
-                targetPose.position = hitInfo.point;
-                targetPose.rotation = Quaternion.FromToRotation(Vector3.forward, hitInfo.normal);
+                newTargetPose.position = hitInfo.point;
+                newTargetPose.rotation = Quaternion.FromToRotation(Vector3.forward, hitInfo.normal);
             }
             else
             {
@@ -156,13 +156,16 @@ namespace Input2
                     currentTarget = null;
                 }
 
-                targetPose.position = transform.position + direction * maxRaycastDistance;
-                targetPose.rotation = Quaternion.LookRotation(-direction);
+                newTargetPose.position = transform.position + direction * maxRaycastDistance;
+                newTargetPose.rotation = Quaternion.LookRotation(-direction);
             }
+
+            // Assign through property so the event gets fired
+            TargetPose = newTargetPose;
 
             if (debugDisplay)
             {
-                Debug.DrawLine(transform.position, targetPose.position);
+                Debug.DrawLine(transform.position, TargetPose.position);
             }
         }
 

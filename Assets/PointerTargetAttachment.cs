@@ -12,7 +12,7 @@ namespace Input2
         {
             if (pointer != null)
             {
-                pointer.TickEvent += Tick;
+                pointer.TargetPoseChangedEvent += OnTargetPoseChanged;
             }
         }
 
@@ -20,13 +20,13 @@ namespace Input2
         {
             if (pointer != null)
             {
-                pointer.TickEvent -= Tick;
+                pointer.TargetPoseChangedEvent -= OnTargetPoseChanged;
             }
         }
 
-        public void Tick(Pointer pointer)
+        public void OnTargetPoseChanged(Pose targetPose)
         {
-            transform.SetPositionAndRotation(pointer.TargetPose.position, pointer.TargetPose.rotation);
+            transform.SetPositionAndRotation(targetPose.position, targetPose.rotation);
         }
     }
 }

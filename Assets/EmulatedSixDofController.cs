@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using UnityEngine;
 
 namespace Input2
@@ -8,9 +6,9 @@ namespace Input2
     public class EmulatedSixDofController : SixDofController
     {
         public KeyCode toggleKey = KeyCode.LeftShift;
-        public KeyCode rotationKey = KeyCode.LeftControl;
+        public KeyCode movementKey = KeyCode.LeftControl;
         public float maxToggleDelay = 0.2f;
-        public float mouseSensitivity = 10.0f;
+        public float mouseSensitivity = 0.2f;
         public float distanceToCamera = 0.4f;
 
         private Stopwatch toggleTimer = new Stopwatch();
@@ -22,6 +20,9 @@ namespace Input2
 
         private bool isManipulating;
 
+        private Vector3 localPosition = new Vector3(0.2f, 0.2f, 1.0f);
+        private Quaternion localRotation = Quaternion.identity;
+
         public override void Tick()
         {
             if (Input.GetKeyDown(toggleKey))
@@ -32,32 +33,41 @@ namespace Input2
             if (toggleTimer.IsRunning && toggleTimer.ElapsedMilliseconds > maxToggleDelay * 1000.0f)
             {
                 isManipulating = true;
+                toggleTimer.Reset();
             }
 
             if (Input.GetKeyUp(toggleKey))
             {
-                if (!isManipulating)
+                if (isManipulating)
                 {
-                    IsPresent = !IsPresent;
+                    isManipulating = false;
                 }
-                isManipulating = false;
-                toggleTimer.Reset();
+                else
+                { 
+                    IsPresent = !IsPresent;
+                    toggleTimer.Reset();
+                }
             }
 
             if (isManipulating)
             {
-                if (Input.GetKey(rotationKey))
+                if (Input.GetKey(movementKey))
                 {
-                    float h = Input.GetAxis("Mouse X");
-                    float v = Input.GetAxis("Mouse Y");
-                    Rotation = Quaternion.Euler(-v * mouseSensitivity, h * mouseSensitivity, 0) * Rotation;
+                    float x = Input.GetAxis("Mouse X");
+                    float y = Input.GetAxis("Mouse Y");
+                    localPosition += new Vector3(x * mouseSensitivity, y * mouseSensitivity, 0);
                 }
                 else
                 {
                     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    Position = ray.GetPoint(distanceToCamera);
+                    localRotation = Quaternion.LookRotation(ray.direction);
                 }
+
+                PrimaryButton = Input.GetMouseButton(0);
             }
+
+            Rotation = localRotation * Camera.main.transform.rotation;
+            Position = Camera.main.transform.TransformPoint(localPosition);
 
             base.Tick();
         }
