@@ -48,7 +48,7 @@ Controller inputs can be read subscribing to input events as described in the [I
 
 ## Pointers
 
-A pointer is basically a ray attached to a controller that gives *focus* to the game object it is pointing to. For a game object to be able to receive focus it must have a collider, so it can be hit by physics raycasts, and belong to one of the layers defined in the *Pointer Raycast Layer Masks* in the *Pointer Profile*.
+A pointer is basically something attached to a controller that gives *focus* to the game object it is pointing to. For a game object to be able to receive focus it must have a collider, so it can be hit by physics raycasts, and belong to one of the layers defined in the *Pointer Raycast Layer Masks* in the *Pointer Profile*.
 
 Pointers are instanced automatically at runtime when a new controller is detected. The pointers that are created for each controller type are defined in the *Pointer Options* in the *Pointer Profile*. You can have more than one pointer attached to a controller; for example, with the default pointer profile, WMR controllers get both a line and a parabolic pointer for normal selection and teleportation respectively. Pointers communicate with each other to decide which one is active.
 
